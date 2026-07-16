@@ -1,4 +1,3 @@
-# sensors.yaml (Local file on your Home Assistant machine)
 sensor:
   - platform: homeassistant
     id: current_temperature
@@ -20,28 +19,6 @@ sensor:
               format: "%.0f°F"
               args: [ 'x' ]
 
-  - platform: homeassistant
-    id: room_ambient_temp
-    entity_id: sensor.e_gh_temperature_temperature
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: ambient_temp_label
-            text:
-              format: "Room: %.1f°F"
-              args: [ 'x' ]
-
-  - platform: homeassistant
-    id: room_ambient_humidity
-    entity_id: sensor.e_gh_temperature_humidity
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: ambient_humidity_label
-            text:
-              format: "Humidity: %.0f%%"
-              args: [ 'x' ]
-
 text_sensor:
   - platform: homeassistant
     id: light_switch_state
@@ -61,7 +38,7 @@ text_sensor:
     on_value:
       then:
         - lvgl.label.update:
-            id: mode_label
+            id: mode_label # Fixed: Target mode_label container
             text:
               format: "Mode: %s"
               args: [ 'x.c_str()' ]
@@ -72,7 +49,7 @@ text_sensor:
     on_value:
       then:
         - lvgl.label.update:
-            id: fan_label
+            id: fan_label # Fixed: Target fan_label container exclusively
             text:
               format: "Fan: %s"
               args: [ 'x.c_str()' ]
