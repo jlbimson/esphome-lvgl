@@ -44,11 +44,11 @@ lvgl:
         width: 220
         height: 220
         align: CENTER
-        min_value: 17       # Corrected from range_min
-        max_value: 30       # Corrected from range_max
+        min_value: 17
+        max_value: 30
         value: 21
         adjustable: true
-        on_value:           # Corrected from on_value_changed
+        on_value:
           then:
             - homeassistant.service:
                 service: climate.set_temperature
@@ -197,7 +197,7 @@ lvgl:
           - "low"
           - "medium"
           - "high"
-        on_value_changed:
+        on_value:           # Corrected from on_value_changed
           then:
             - homeassistant.service:
                 service: climate.set_fan_mode
