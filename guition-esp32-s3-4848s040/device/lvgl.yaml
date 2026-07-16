@@ -1,197 +1,219 @@
-# We target the top-level lvgl configuration from the package and append our page
+# guition-esp32-s3-4848s040/device/lvgl.yaml
+# Commit this file to your GitHub repository!
+
 lvgl:
-  pages:
-    - id: climate_page
-      bg_color: 0x121212 
-      widgets:
-        # --- TITLE ---
-        - label:
-            text: "CLIMATE CONTROL"
-            align: TOP_MID
-            y: 15
-            text_color: 0xFFFFFF
+  log_level: WARN
+  buffer_size: 10%
+  theme:
+    dark: true
+  
+  # Declare your fonts globally
+  fonts:
+    - path: 'roboto_14.ttf'
+      size: 14
+    - path: 'roboto_22.ttf'
+      size: 22
+    - path: 'roboto_32.ttf'
+      size: 32
 
-        # --- TEMPERATURE ARC ---
-        - arc:
-            id: temp_arc
-            x: -80
-            y: 20
-            width: 180
-            height: 180
-            align: CENTER
-            range_min: 17
-            range_max: 30
-            value: 21
-            adjustable: true
-            on_value_changed:
-              then:
-                - homeassistant.service:
-                    service: climate.set_temperature
-                    data:
-                      entity_id: climate.electrical_gh_ac
-                      temperature: !lambda "return String(x).c_str();"
-                - lvgl.label.update:
-                    id: temp_label
-                    format: "%.0f°C"
-                    args: [ 'x' ]
+  # Your single, combined widgets block
+  widgets:
+    # --- 1. Top Bar / Status Header ---
+    - obj:
+        width: 100%
+        height: 40
+        align: TOP_MID
+        bg_color: 0x1A1A1A
+        radius: 0
+        border_width: 0
+        widgets:
+          - label:
+              text: "CLIMATE CONTROL"
+              align: CENTER
+              text_color: 0xFFFFFF
+              font: roboto_14
 
-        # --- TEMPERATURE VALUE ---
-        - label:
-            id: temp_label
-            text: "21°C"
-            align: CENTER
-            x: -80
-            y: 20
-            text_color: 0xFFFFFF
-            font: montserrat_32
+    # --- 2. Temperature Display & Control (Left Side) ---
+    - arc:
+        id: temp_arc
+        x: -90
+        y: 20
+        width: 220
+        height: 220
+        align: CENTER
+        range_min: 17
+        range_max: 30
+        value: 21
+        adjustable: true
+        on_value_changed:
+          then:
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda "return String(x).c_str();"
+            - lvgl.label.update:
+                id: temp_label
+                format: "%.0f°C"
+                args: [ 'x' ]
 
-        # --- MINUS BUTTON ---
-        - button:
-            id: btn_temp_down
-            x: -180
-            y: 110
-            width: 60
-            height: 50
-            align: CENTER
-            widgets:
-              - label: 
-                  text: "-" 
-                  align: CENTER 
-                  text_color: 0xFFFFFF 
-                  font: montserrat_22
-            on_click:
-              then:
-                - lambda: |-
-                    auto arc = id(temp_arc);
-                    float cur = arc.get_value();
-                    if (cur > 17) {
-                      float new_temp = cur - 1;
-                      arc.set_value(new_temp);
-                      id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
-                      auto call = arch->get_api()->make_call("climate.set_temperature");
-                      call.set_data("entity_id", "climate.electrical_gh_ac");
-                      call.set_data("temperature", String((int)new_temp).c_str());
-                      call.perform();
-                    }
+    # Center Target Temperature Value
+    - label:
+        id: temp_label
+        text: "21°C"
+        align: CENTER
+        x: -90
+        y: 20
+        text_color: 0xFFFFFF
+        font: roboto_32
 
-        # --- PLUS BUTTON ---
-        - button:
-            id: btn_temp_up
-            x: 20
-            y: 110
-            width: 60
-            height: 50
-            align: CENTER
-            widgets:
-              - label: 
-                  text: "+" 
-                  align: CENTER 
-                  text_color: 0xFFFFFF 
-                  font: montserrat_22
-            on_click:
-              then:
-                - lambda: |-
-                    auto arc = id(temp_arc);
-                    float cur = arc.get_value();
-                    if (cur < 30) {
-                      float new_temp = cur + 1;
-                      arc.set_value(new_temp);
-                      id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
-                      auto call = arch->get_api()->make_call("climate.set_temperature");
-                      call.set_data("entity_id", "climate.electrical_gh_ac");
-                      call.set_data("temperature", String((int)new_temp).c_str());
-                      call.perform();
-                    }
+    # Minus Button (Below Arc)
+    - button:
+        id: btn_temp_down
+        x: -170
+        y: 150
+        width: 60
+        height: 50
+        align: CENTER
+        widgets:
+          - label: 
+              text: "-" 
+              align: CENTER 
+              text_color: 0xFFFFFF 
+              font: roboto_22
+        on_click:
+          then:
+            - lambda: |-
+                auto arc = id(temp_arc);
+                float cur = arc.get_value();
+                if (cur > 17) {
+                  float new_temp = cur - 1;
+                  arc.set_value(new_temp);
+                  id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
+                  auto call = arch->get_api()->make_call("climate.set_temperature");
+                  call.set_data("entity_id", "climate.electrical_gh_ac");
+                  call.set_data("temperature", String((int)new_temp).c_str());
+                  call.perform();
+                }
 
-        # --- SYSTEM HVAC MODE BUTTONS ---
-        - button:
-            id: btn_cool
-            x: 140
-            y: -80
-            width: 100
-            height: 45
-            align: CENTER
-            widgets:
-              - label: { text: "COOL", align: CENTER, text_color: 0xFFFFFF }
-            on_click:
-              then:
-                - homeassistant.service:
-                    service: climate.set_hvac_mode
-                    data:
-                      entity_id: climate.electrical_gh_ac
-                      hvac_mode: "cool"
+    # Plus Button (Below Arc)
+    - button:
+        id: btn_temp_up
+        x: -10
+        y: 150
+        width: 60
+        height: 50
+        align: CENTER
+        widgets:
+          - label: 
+              text: "+" 
+              align: CENTER 
+              text_color: 0xFFFFFF 
+              font: roboto_22
+        on_click:
+          then:
+            - lambda: |-
+                auto arc = id(temp_arc);
+                float cur = arc.get_value();
+                if (cur < 30) {
+                  float new_temp = cur + 1;
+                  arc.set_value(new_temp);
+                  id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
+                  auto call = arch->get_api()->make_call("climate.set_temperature");
+                  call.set_data("entity_id", "climate.electrical_gh_ac");
+                  call.set_data("temperature", String((int)new_temp).c_str());
+                  call.perform();
+                }
 
-        - button:
-            id: btn_heat
-            x: 140
-            y: -25
-            width: 100
-            height: 45
-            align: CENTER
-            widgets:
-              - label: { text: "HEAT", align: CENTER, text_color: 0xFFFFFF }
-            on_click:
-              then:
-                - homeassistant.service:
-                    service: climate.set_hvac_mode
-                    data:
-                      entity_id: climate.electrical_gh_ac
-                      hvac_mode: "heat"
+    # --- 3. Mode Buttons (Right Side) ---
+    - button:
+        id: btn_cool
+        x: 130
+        y: -70
+        width: 120
+        height: 50
+        align: CENTER
+        widgets:
+          - label: { text: "COOL MODE", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "cool"
 
-        - button:
-            id: btn_off
-            x: 140
-            y: 30
-            width: 100
-            height: 45
-            align: CENTER
-            bg_color: 0xD32F2F
-            widgets:
-              - label: { text: "OFF", align: CENTER, text_color: 0xFFFFFF }
-            on_click:
-              then:
-                - homeassistant.service:
-                    service: climate.set_hvac_mode
-                    data:
-                      entity_id: climate.electrical_gh_ac
-                      hvac_mode: "off"
+    - button:
+        id: btn_heat
+        x: 130
+        y: -10
+        width: 120
+        height: 50
+        align: CENTER
+        widgets:
+          - label: { text: "HEAT MODE", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "heat"
 
-        # --- FAN SPEED DROPDOWN ---
-        - dropdown:
-            id: fan_dropdown
-            x: 140
-            y: 90
-            width: 120
-            height: 40
-            align: CENTER
-            options:
-              - "auto"
-              - "low"
-              - "medium"
-              - "high"
-            on_value_changed:
-              then:
-                - homeassistant.service:
-                    service: climate.set_fan_mode
-                    data:
-                      entity_id: climate.electrical_gh_ac
-                      fan_mode: !lambda "return x;"
+    - button:
+        id: btn_off
+        x: 130
+        y: 50
+        width: 120
+        height: 50
+        align: CENTER
+        bg_color: 0xD32F2F # Distinct Red
+        widgets:
+          - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "off"
 
-        # --- STATUS INDICATORS ---
-        - label:
-            id: mode_label
-            text: "Mode: Unknown"
-            x: -180
-            y: -110
-            align: CENTER
-            text_color: 0xAAAAAA
-            font: montserrat_14
+    # --- 4. Fan Speed Dropdown (Right Side, Bottom) ---
+    - dropdown:
+        id: fan_dropdown
+        x: 130
+        y: 115
+        width: 120
+        height: 45
+        align: CENTER
+        options:
+          - "auto"
+          - "low"
+          - "medium"
+          - "high"
+        on_value_changed:
+          then:
+            - homeassistant.service:
+                service: climate.set_fan_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  fan_mode: !lambda "return x;"
 
-        - label:
-            id: fan_label
-            text: "Fan: Unknown"
-            x: -60
-            y: -110
-            align: CENTER
-            text_color: 0xAAAAAA
-            font: montserrat_14
+    # --- 5. Status Info Footer ---
+    - label:
+        id: mode_label
+        text: "Mode: Unknown"
+        x: -100
+        y: 215
+        align: CENTER
+        text_color: 0xAAAAAA
+        font: roboto_14
+
+    - label:
+        id: fan_label
+        text: "Fan: Unknown"
+        x: 100
+        y: 215
+        align: CENTER
+        text_color: 0xAAAAAA
+        font: roboto_14
