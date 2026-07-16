@@ -89,7 +89,7 @@ lvgl:
         text_color: 0xFFFFFF
         text_font: roboto_32
 
-    # Minus Button (Direct Home Assistant Variable Step Sync)
+    # Minus Button (2 Degree Steps to clear IR Database Rounding gaps)
     - button:
         id: btn_temp_down
         x: -170
@@ -111,12 +111,12 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
-                    if (!isnan(current) && current > 63) {
-                      return esphome::to_string((int)round(current - 1.5));
+                    if (!isnan(current) && current > 64) {
+                      return esphome::to_string((int)round(current - 2.0));
                     }
                     return esphome::to_string(63);
 
-    # Plus Button (Direct Home Assistant Variable Step Sync)
+    # Plus Button (2 Degree Steps to clear IR Database Rounding gaps)
     - button:
         id: btn_temp_up
         x: -10
@@ -138,8 +138,8 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
-                    if (!isnan(current) && current < 86) {
-                      return esphome::to_string((int)round(current + 1.5));
+                    if (!isnan(current) && current < 84) {
+                      return esphome::to_string((int)round(current + 2.0));
                     }
                     return esphome::to_string(86);
 
@@ -196,7 +196,7 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   hvac_mode: "off"
 
-    # --- 4. Fan Speed Dropdown (Fixed Casting Structure) ---
+    # --- 4. Fan Speed Dropdown (Fixed option value extraction hooks) ---
     - dropdown:
         id: fan_dropdown
         x: 130
@@ -209,16 +209,13 @@ lvgl:
           - "low"
           - "medium"
           - "high"
-        on_value:
+        on_selection:       # Corrected trigger property from on_value
           then:
             - homeassistant.service:
                 service: climate.set_fan_mode
                 data:
                   entity_id: climate.electrical_gh_ac
-                  fan_mode: !lambda |-
-                    static std::string value;
-                    value = x;
-                    return value.c_str();
+                  fan_mode: !lambda "return x;"
 
     # --- 5. Status Info Footer ---
     - label:

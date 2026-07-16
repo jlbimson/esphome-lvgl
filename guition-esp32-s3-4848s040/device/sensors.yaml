@@ -38,7 +38,7 @@ text_sensor:
     on_value:
       then:
         - lvgl.label.update:
-            id: mode_label
+            id: mode_label # Fixed: Target mode_label container
             text:
               format: "Mode: %s"
               args: [ 'x.c_str()' ]
@@ -49,7 +49,7 @@ text_sensor:
     on_value:
       then:
         - lvgl.label.update:
-            id: fan_label
+            id: fan_label # Fixed: Target fan_label container exclusively
             text:
               format: "Fan: %s"
               args: [ 'x.c_str()' ]
