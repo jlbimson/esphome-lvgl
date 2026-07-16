@@ -8,12 +8,12 @@ lvgl:
   touches:
     - touch_id: my_touch
 
-  # Define your custom design styles
-  styles:
+  # Custom design styles
+  style_definitions:
     - id: style_btn
       bg_color: 0x2196F3
       bg_grad_color: 0x1976D2
-      bg_grad_dir: VERTICAL
+      bg_grad_dir: VER
       text_color: 0xFFFFFF
       border_width: 0
       radius: 8
@@ -21,9 +21,9 @@ lvgl:
       bg_color: 0x1976D2
       bg_grad_color: 0x0D47A1
 
-  # Create the Climate Control Screen
-  screens:
-    - id: climate_screen
+  # Use 'pages' to prevent top-level 'widgets' conflicts
+  pages:
+    - id: climate_page
       bg_color: 0x121212 # Sleek Dark Mode Background
       widgets:
         
@@ -78,7 +78,11 @@ lvgl:
             align: CENTER
             styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: { text: "-", align: CENTER, text_color: 0xFFFFFF, font: montserrat_22 }
+              - label: 
+                  text: "-" 
+                  align: CENTER 
+                  text_color: 0xFFFFFF 
+                  font: montserrat_22
             on_click:
               then:
                 - lambda: |-
@@ -88,9 +92,8 @@ lvgl:
                       float new_temp = cur - 1;
                       arc.set_value(new_temp);
                       id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
-                      // Send new value back to Home Assistant
                       auto call = arch->get_api()->make_call("climate.set_temperature");
-                      call.set_data("entity_id", "climate.klimaire_ac");
+                      call.set_data("entity_id", "climate.electrical_gh_ac");
                       call.set_data("temperature", String((int)new_temp).c_str());
                       call.perform();
                     }
@@ -105,7 +108,11 @@ lvgl:
             align: CENTER
             styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: { text: "+", align: CENTER, text_color: 0xFFFFFF, font: montserrat_22 }
+              - label: 
+                  text: "+" 
+                  align: CENTER 
+                  text_color: 0xFFFFFF 
+                  font: montserrat_22
             on_click:
               then:
                 - lambda: |-
@@ -115,9 +122,8 @@ lvgl:
                       float new_temp = cur + 1;
                       arc.set_value(new_temp);
                       id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
-                      // Send new value back to Home Assistant
                       auto call = arch->get_api()->make_call("climate.set_temperature");
-                      call.set_data("entity_id", "climate.klimaire_ac");
+                      call.set_data("entity_id", "climate.electrical_gh_ac");
                       call.set_data("temperature", String((int)new_temp).c_str());
                       call.perform();
                     }
@@ -134,7 +140,10 @@ lvgl:
             align: CENTER
             styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: { text: "COOL", align: CENTER, text_color: 0xFFFFFF }
+              - label: 
+                  text: "COOL" 
+                  align: CENTER 
+                  text_color: 0xFFFFFF
             on_click:
               then:
                 - homeassistant.service:
@@ -153,7 +162,10 @@ lvgl:
             align: CENTER
             styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: { text: "HEAT", align: CENTER, text_color: 0xFFFFFF }
+              - label: 
+                  text: "HEAT" 
+                  align: CENTER 
+                  text_color: 0xFFFFFF
             on_click:
               then:
                 - homeassistant.service:
@@ -172,7 +184,10 @@ lvgl:
             align: CENTER
             bg_color: 0xD32F2F # Soft Red for Power Off
             widgets:
-              - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF }
+              - label: 
+                  text: "POWER OFF" 
+                  align: CENTER 
+                  text_color: 0xFFFFFF
             on_click:
               then:
                 - homeassistant.service:
