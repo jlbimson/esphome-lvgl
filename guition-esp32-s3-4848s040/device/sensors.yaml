@@ -17,7 +17,7 @@ sensor:
             id: temp_label
             text:
               format: "%.0f°F"
-              args: [ 'x * 1.8 + 32' ] # Converts the Celsius state to Fahrenheit for the display
+              args: [ 'x * 1.8 + 32' ]
 
 text_sensor:
   - platform: homeassistant

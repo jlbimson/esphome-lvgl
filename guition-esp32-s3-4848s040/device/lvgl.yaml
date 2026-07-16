@@ -54,7 +54,7 @@ lvgl:
                 service: climate.set_temperature
                 data:
                   entity_id: climate.electrical_gh_ac
-                  temperature: !lambda "return String(x).c_str();"
+                  temperature: !lambda "return esphome::to_string((int)x);"
             - lvgl.label.update:
                 id: temp_label
                 text:
@@ -87,19 +87,16 @@ lvgl:
               text_font: roboto_22
         on_click:
           then:
-            - lambda: |-
-                auto arc = id(temp_arc);
-                float cur = arc->get_value();
-                if (cur > 17) {
-                  float new_temp = cur - 1;
-                  arc->set_value(new_temp);
-                  int f_temp = (int)round(new_temp * 1.8 + 32);
-                  id(temp_label).set_text( (String(f_temp) + "°F").c_str() );
-                  auto call = arch->get_api()->make_call("climate.set_temperature");
-                  call.set_data("entity_id", "climate.electrical_gh_ac");
-                  call.set_data("temperature", String((int)new_temp).c_str());
-                  call.perform();
-                }
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda |-
+                    float current = id(target_temperature).state;
+                    if (!isnan(current) && current > 17) {
+                      return esphome::to_string((int)current - 1);
+                    }
+                    return esphome::to_string(17);
 
     # Plus Button (Below Arc)
     - button:
@@ -117,19 +114,16 @@ lvgl:
               text_font: roboto_22
         on_click:
           then:
-            - lambda: |-
-                auto arc = id(temp_arc);
-                float cur = arc->get_value();
-                if (cur < 30) {
-                  float new_temp = cur + 1;
-                  arc->set_value(new_temp);
-                  int f_temp = (int)round(new_temp * 1.8 + 32);
-                  id(temp_label).set_text( (String(f_temp) + "°F").c_str() );
-                  auto call = arch->get_api()->make_call("climate.set_temperature");
-                  call.set_data("entity_id", "climate.electrical_gh_ac");
-                  call.set_data("temperature", String((int)new_temp).c_str());
-                  call.perform();
-                }
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda |-
+                    float current = id(target_temperature).state;
+                    if (!isnan(current) && current < 30) {
+                      return esphome::to_string((int)current + 1);
+                    }
+                    return esphome::to_string(30);
 
     # --- 3. Mode Buttons (Right Side) ---
     - button:
@@ -197,7 +191,7 @@ lvgl:
           - "low"
           - "medium"
           - "high"
-        on_value:           # Corrected from on_value_changed
+        on_value:
           then:
             - homeassistant.service:
                 service: climate.set_fan_mode
