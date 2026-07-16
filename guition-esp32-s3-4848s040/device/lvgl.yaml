@@ -13,6 +13,7 @@ font:
     size: 32
 
 lvgl:
+  rotation: 270
   log_level: WARN
   buffer_size: 10%
   theme:
