@@ -1,11 +1,9 @@
 sensor:
-  # Imports the current room temperature from your Home Assistant climate entity
   - platform: homeassistant
     id: current_temperature
     entity_id: climate.electrical_gh_ac
     attribute: current_temperature
 
-  # Imports the target temperature (for displaying the active setting)
   - platform: homeassistant
     id: target_temperature
     entity_id: climate.electrical_gh_ac
@@ -21,7 +19,6 @@ sensor:
             args: [ 'x' ]
 
 text_sensor:
-  # Imports the current operation mode (cool, heat, off, auto)
   - platform: homeassistant
     id: climate_mode
     entity_id: climate.electrical_gh_ac
@@ -32,7 +29,6 @@ text_sensor:
             format: "Mode: %s"
             args: [ 'x.c_str()' ]
 
-  # Imports the current fan mode (low, medium, high, auto)
   - platform: homeassistant
     id: climate_fan_mode
     entity_id: climate.electrical_gh_ac

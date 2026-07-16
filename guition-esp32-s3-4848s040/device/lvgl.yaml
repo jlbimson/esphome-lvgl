@@ -1,40 +1,17 @@
-# LVGL Integration Configuration
+# We target the top-level lvgl configuration from the package and append our page
 lvgl:
-  # Set your display driver reference ID here
-  displays:
-    - display_id: my_display
-  
-  # Configure your touch driver reference ID here
-  touches:
-    - touch_id: my_touch
-
-  # Custom design styles
-  style_definitions:
-    - id: style_btn
-      bg_color: 0x2196F3
-      bg_grad_color: 0x1976D2
-      bg_grad_dir: VER
-      text_color: 0xFFFFFF
-      border_width: 0
-      radius: 8
-    - id: style_btn_pressed
-      bg_color: 0x1976D2
-      bg_grad_color: 0x0D47A1
-
-  # Use 'pages' to prevent top-level 'widgets' conflicts
   pages:
     - id: climate_page
-      bg_color: 0x121212 # Sleek Dark Mode Background
+      bg_color: 0x121212 
       widgets:
-        
-        # --- TITLE LABEL ---
+        # --- TITLE ---
         - label:
             text: "CLIMATE CONTROL"
             align: TOP_MID
             y: 15
             text_color: 0xFFFFFF
 
-        # --- TEMPERATURE ARC (DIAL) ---
+        # --- TEMPERATURE ARC ---
         - arc:
             id: temp_arc
             x: -80
@@ -58,7 +35,7 @@ lvgl:
                     format: "%.0f°C"
                     args: [ 'x' ]
 
-        # --- CENTER TEMPERATURE VALUE ---
+        # --- TEMPERATURE VALUE ---
         - label:
             id: temp_label
             text: "21°C"
@@ -76,7 +53,6 @@ lvgl:
             width: 60
             height: 50
             align: CENTER
-            styles: [style_btn, style_btn_pressed]
             widgets:
               - label: 
                   text: "-" 
@@ -106,7 +82,6 @@ lvgl:
             width: 60
             height: 50
             align: CENTER
-            styles: [style_btn, style_btn_pressed]
             widgets:
               - label: 
                   text: "+" 
@@ -128,9 +103,7 @@ lvgl:
                       call.perform();
                     }
 
-        # --- CONTROL SIDE PANEL (RIGHT SIDE) ---
-
-        # COOL MODE BUTTON
+        # --- SYSTEM HVAC MODE BUTTONS ---
         - button:
             id: btn_cool
             x: 140
@@ -138,12 +111,8 @@ lvgl:
             width: 100
             height: 45
             align: CENTER
-            styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: 
-                  text: "COOL" 
-                  align: CENTER 
-                  text_color: 0xFFFFFF
+              - label: { text: "COOL", align: CENTER, text_color: 0xFFFFFF }
             on_click:
               then:
                 - homeassistant.service:
@@ -152,7 +121,6 @@ lvgl:
                       entity_id: climate.electrical_gh_ac
                       hvac_mode: "cool"
 
-        # HEAT MODE BUTTON
         - button:
             id: btn_heat
             x: 140
@@ -160,12 +128,8 @@ lvgl:
             width: 100
             height: 45
             align: CENTER
-            styles: [style_btn, style_btn_pressed]
             widgets:
-              - label: 
-                  text: "HEAT" 
-                  align: CENTER 
-                  text_color: 0xFFFFFF
+              - label: { text: "HEAT", align: CENTER, text_color: 0xFFFFFF }
             on_click:
               then:
                 - homeassistant.service:
@@ -174,7 +138,6 @@ lvgl:
                       entity_id: climate.electrical_gh_ac
                       hvac_mode: "heat"
 
-        # OFF BUTTON
         - button:
             id: btn_off
             x: 140
@@ -182,12 +145,9 @@ lvgl:
             width: 100
             height: 45
             align: CENTER
-            bg_color: 0xD32F2F # Soft Red for Power Off
+            bg_color: 0xD32F2F
             widgets:
-              - label: 
-                  text: "POWER OFF" 
-                  align: CENTER 
-                  text_color: 0xFFFFFF
+              - label: { text: "OFF", align: CENTER, text_color: 0xFFFFFF }
             on_click:
               then:
                 - homeassistant.service:
@@ -196,7 +156,7 @@ lvgl:
                       entity_id: climate.electrical_gh_ac
                       hvac_mode: "off"
 
-        # --- FAN SPEED SELECT (DROPDOWN) ---
+        # --- FAN SPEED DROPDOWN ---
         - dropdown:
             id: fan_dropdown
             x: 140
@@ -217,7 +177,7 @@ lvgl:
                       entity_id: climate.electrical_gh_ac
                       fan_mode: !lambda "return x;"
 
-        # --- REAL-TIME STATUS DISPLAY ---
+        # --- STATUS INDICATORS ---
         - label:
             id: mode_label
             text: "Mode: Unknown"
