@@ -54,13 +54,14 @@ lvgl:
                   temperature: !lambda "return String(x).c_str();"
             - lvgl.label.update:
                 id: temp_label
-                format: "%.0f°C"
-                args: [ 'x' ]
+                text:
+                  format: "%.0f°F"
+                  args: [ 'x * 1.8 + 32' ]
 
     # Center Target Temperature Value
     - label:
         id: temp_label
-        text: "21°C"
+        text: "70°F"
         align: CENTER
         x: -90
         y: 20
@@ -85,11 +86,12 @@ lvgl:
           then:
             - lambda: |-
                 auto arc = id(temp_arc);
-                float cur = arc->get_value();  // Changed from '.' to '->' because ID references are pointers in ESPHome LVGL
+                float cur = arc->get_value();
                 if (cur > 17) {
                   float new_temp = cur - 1;
                   arc->set_value(new_temp);
-                  id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
+                  int f_temp = (int)round(new_temp * 1.8 + 32);
+                  id(temp_label).set_text( (String(f_temp) + "°F").c_str() );
                   auto call = arch->get_api()->make_call("climate.set_temperature");
                   call.set_data("entity_id", "climate.electrical_gh_ac");
                   call.set_data("temperature", String((int)new_temp).c_str());
@@ -114,11 +116,12 @@ lvgl:
           then:
             - lambda: |-
                 auto arc = id(temp_arc);
-                float cur = arc->get_value();  // Changed from '.' to '->'
+                float cur = arc->get_value();
                 if (cur < 30) {
                   float new_temp = cur + 1;
                   arc->set_value(new_temp);
-                  id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
+                  int f_temp = (int)round(new_temp * 1.8 + 32);
+                  id(temp_label).set_text( (String(f_temp) + "°F").c_str() );
                   auto call = arch->get_api()->make_call("climate.set_temperature");
                   call.set_data("entity_id", "climate.electrical_gh_ac");
                   call.set_data("temperature", String((int)new_temp).c_str());
@@ -167,7 +170,7 @@ lvgl:
         width: 120
         height: 50
         align: CENTER
-        bg_color: 0xD32F2F # Distinct Red
+        bg_color: 0xD32F2F
         widgets:
           - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
         on_click:

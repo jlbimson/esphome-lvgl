@@ -10,13 +10,14 @@ sensor:
     attribute: temperature
     on_value:
       then:
-        - lvgl.arc.update:      # <--- Fixed from set_value to update
+        - lvgl.arc.update:
             id: temp_arc
             value: !lambda "return x;"
         - lvgl.label.update:
             id: temp_label
-            format: "%.0f°C"
-            args: [ 'x' ]
+            text:
+              format: "%.0f°F"
+              args: [ 'x * 1.8 + 32' ] # Converts the Celsius state to Fahrenheit for the display
 
 text_sensor:
   - platform: homeassistant
@@ -26,8 +27,9 @@ text_sensor:
       then:
         - lvgl.label.update:
             id: mode_label
-            format: "Mode: %s"
-            args: [ 'x.c_str()' ]
+            text:
+              format: "Mode: %s"
+              args: [ 'x.c_str()' ]
 
   - platform: homeassistant
     id: climate_fan_mode
@@ -36,5 +38,6 @@ text_sensor:
       then:
         - lvgl.label.update:
             id: fan_label
-            format: "Fan: %s"
-            args: [ 'x.c_str()' ]
+            text:
+              format: "Fan: %s"
+              args: [ 'x.c_str()' ]
