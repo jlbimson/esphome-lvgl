@@ -1,7 +1,6 @@
 # guition-esp32-s3-4848s040/device/lvgl.yaml
 # Commit this file to your GitHub repository!
 
-# Global font block (Outside the lvgl block)
 font:
   - file: "gfonts://Roboto"
     id: roboto_14
@@ -19,7 +18,6 @@ lvgl:
   theme:
     dark_mode: true
   
-  # Your single, combined widgets block
   widgets:
     # --- 1. Top Bar / Status Header with Light Toggle ---
     - obj:
@@ -37,14 +35,13 @@ lvgl:
               text_color: 0xFFFFFF
               text_font: roboto_14
           
-          # LIGHT TOGGLE BUTTON (State colors handled dynamically by sensors.yaml)
           - button:
               id: btn_lights
               align: RIGHT_MID
               x: -20
               width: 110
               height: 36
-              bg_color: 0x333333 # Starts unhighlighted gray
+              bg_color: 0x333333
               widgets:
                 - label:
                     text: "TOGGLE LIGHTS"
@@ -66,8 +63,8 @@ lvgl:
         width: 220
         height: 220
         align: CENTER
-        min_value: 63       # Fahrenheit min (17C)
-        max_value: 86       # Fahrenheit max (30C)
+        min_value: 63       
+        max_value: 86       
         value: 72
         adjustable: true
         on_value:
@@ -83,7 +80,6 @@ lvgl:
                   format: "%.0f°F"
                   args: [ 'x' ]
 
-    # Center Target Temperature Value
     - label:
         id: temp_label
         text: "72°F"
@@ -93,7 +89,7 @@ lvgl:
         text_color: 0xFFFFFF
         text_font: roboto_32
 
-    # Minus Button (Below Arc)
+    # Minus Button (Direct Home Assistant Variable Step Sync)
     - button:
         id: btn_temp_down
         x: -170
@@ -116,11 +112,11 @@ lvgl:
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
                     if (!isnan(current) && current > 63) {
-                      return esphome::to_string((int)current - 1);
+                      return esphome::to_string((int)round(current - 1.5));
                     }
                     return esphome::to_string(63);
 
-    # Plus Button (Below Arc)
+    # Plus Button (Direct Home Assistant Variable Step Sync)
     - button:
         id: btn_temp_up
         x: -10
@@ -143,7 +139,7 @@ lvgl:
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
                     if (!isnan(current) && current < 86) {
-                      return esphome::to_string((int)current + 1);
+                      return esphome::to_string((int)round(current + 1.5));
                     }
                     return esphome::to_string(86);
 
@@ -200,7 +196,7 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   hvac_mode: "off"
 
-    # --- 4. Fan Speed Dropdown (Right Side, Bottom) ---
+    # --- 4. Fan Speed Dropdown (Fixed Casting Structure) ---
     - dropdown:
         id: fan_dropdown
         x: 130
@@ -219,7 +215,10 @@ lvgl:
                 service: climate.set_fan_mode
                 data:
                   entity_id: climate.electrical_gh_ac
-                  fan_mode: !lambda "return x;"
+                  fan_mode: !lambda |-
+                    static std::string value;
+                    value = x;
+                    return value.c_str();
 
     # --- 5. Status Info Footer ---
     - label:

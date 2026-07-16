@@ -20,7 +20,6 @@ sensor:
               args: [ 'x' ]
 
 text_sensor:
-  # TRACK LIGHT SWITCH STATE DYNAMICALLY
   - platform: homeassistant
     id: light_switch_state
     entity_id: switch.electrical_gh_lights
