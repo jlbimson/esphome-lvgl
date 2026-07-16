@@ -10,7 +10,7 @@ sensor:
     attribute: temperature
     on_value:
       then:
-        - lvgl.arc.set_value:
+        - lvgl.arc.update:      # <--- Fixed from set_value to update
             id: temp_arc
             value: !lambda "return x;"
         - lvgl.label.update:

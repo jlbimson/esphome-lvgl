@@ -85,10 +85,10 @@ lvgl:
           then:
             - lambda: |-
                 auto arc = id(temp_arc);
-                float cur = arc.get_value();
+                float cur = arc->get_value();  // Changed from '.' to '->' because ID references are pointers in ESPHome LVGL
                 if (cur > 17) {
                   float new_temp = cur - 1;
-                  arc.set_value(new_temp);
+                  arc->set_value(new_temp);
                   id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
                   auto call = arch->get_api()->make_call("climate.set_temperature");
                   call.set_data("entity_id", "climate.electrical_gh_ac");
@@ -114,10 +114,10 @@ lvgl:
           then:
             - lambda: |-
                 auto arc = id(temp_arc);
-                float cur = arc.get_value();
+                float cur = arc->get_value();  // Changed from '.' to '->'
                 if (cur < 30) {
                   float new_temp = cur + 1;
-                  arc.set_value(new_temp);
+                  arc->set_value(new_temp);
                   id(temp_label).set_text( (String((int)new_temp) + "°C").c_str() );
                   auto call = arch->get_api()->make_call("climate.set_temperature");
                   call.set_data("entity_id", "climate.electrical_gh_ac");
