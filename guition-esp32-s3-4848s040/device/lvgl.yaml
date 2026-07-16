@@ -1,21 +1,24 @@
 # guition-esp32-s3-4848s040/device/lvgl.yaml
 # Commit this file to your GitHub repository!
 
+# Global font block (Outside the lvgl block)
+font:
+  - file: "gfonts://Roboto"
+    id: roboto_14
+    size: 14
+  - file: "gfonts://Roboto"
+    id: roboto_22
+    size: 22
+  - file: "gfonts://Roboto"
+    id: roboto_32
+    size: 32
+
 lvgl:
   log_level: WARN
   buffer_size: 10%
   theme:
-    dark: true
+    dark_mode: true  # Fixed option from "dark: true"
   
-  # Declare your fonts globally
-  fonts:
-    - path: 'roboto_14.ttf'
-      size: 14
-    - path: 'roboto_22.ttf'
-      size: 22
-    - path: 'roboto_32.ttf'
-      size: 32
-
   # Your single, combined widgets block
   widgets:
     # --- 1. Top Bar / Status Header ---
@@ -31,7 +34,7 @@ lvgl:
               text: "CLIMATE CONTROL"
               align: CENTER
               text_color: 0xFFFFFF
-              font: roboto_14
+              text_font: roboto_14 # Fixed from "font: roboto_14"
 
     # --- 2. Temperature Display & Control (Left Side) ---
     - arc:
@@ -66,7 +69,7 @@ lvgl:
         x: -90
         y: 20
         text_color: 0xFFFFFF
-        font: roboto_32
+        text_font: roboto_32 # Fixed from "font: roboto_32"
 
     # Minus Button (Below Arc)
     - button:
@@ -81,7 +84,7 @@ lvgl:
               text: "-" 
               align: CENTER 
               text_color: 0xFFFFFF 
-              font: roboto_22
+              text_font: roboto_22 # Fixed from "font: roboto_22"
         on_click:
           then:
             - lambda: |-
@@ -111,7 +114,7 @@ lvgl:
               text: "+" 
               align: CENTER 
               text_color: 0xFFFFFF 
-              font: roboto_22
+              text_font: roboto_22 # Fixed from "font: roboto_22"
         on_click:
           then:
             - lambda: |-
@@ -137,7 +140,7 @@ lvgl:
         height: 50
         align: CENTER
         widgets:
-          - label: { text: "COOL MODE", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+          - label: { text: "COOL MODE", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
         on_click:
           then:
             - homeassistant.service:
@@ -154,7 +157,7 @@ lvgl:
         height: 50
         align: CENTER
         widgets:
-          - label: { text: "HEAT MODE", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+          - label: { text: "HEAT MODE", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
         on_click:
           then:
             - homeassistant.service:
@@ -172,7 +175,7 @@ lvgl:
         align: CENTER
         bg_color: 0xD32F2F
         widgets:
-          - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF, font: roboto_14 }
+          - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
         on_click:
           then:
             - homeassistant.service:
@@ -210,7 +213,7 @@ lvgl:
         y: 215
         align: CENTER
         text_color: 0xAAAAAA
-        font: roboto_14
+        text_font: roboto_14
 
     - label:
         id: fan_label
@@ -219,4 +222,4 @@ lvgl:
         y: 215
         align: CENTER
         text_color: 0xAAAAAA
-        font: roboto_14
+        text_font: roboto_14
