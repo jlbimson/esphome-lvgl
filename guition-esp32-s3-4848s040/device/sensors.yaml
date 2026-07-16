@@ -1,241 +1,44 @@
-# =============================================================================
-# SENSORS - Home Assistant State Synchronization
-# =============================================================================
-# This file creates sensors that monitor Home Assistant entities and update
-# the touchscreen buttons to reflect the current state of your smart devices.
-#
-# WHY THIS FILE EXISTS:
-# When you press a button on the touchscreen, it sends a command to Home
-# Assistant. But what if someone turns on a light using their phone, or a
-# scene activates automatically? This file ensures the touchscreen display
-# always shows the ACTUAL state of each device, not just what was last pressed.
-#
-# HOW IT WORKS:
-# 1. Each sensor subscribes to a Home Assistant entity (switch, sensor, etc.)
-# 2. When that entity's state changes, the "on_state" or "on_value" trigger fires
-# 3. The trigger updates the corresponding button in lvgl.yaml to show the new state
-#
-# KEY CONCEPTS:
-# - "platform: homeassistant" = reads state directly from Home Assistant
-# - "platform: template" = calculates a value using code (lambda)
-# - "entity_id:" = the Home Assistant device/entity to monitor
-# - "id:" = unique name to reference this sensor elsewhere in ESPHome
-# - "trigger_on_initial_state: true" = update button immediately when device boots
-# - "lvgl.widget.update" = changes how a button looks on screen
-# - "checked: !lambda return x;" = x is the sensor's boolean state (true/false)
-#
-# RELATIONSHIP TO lvgl.yaml:
-# Each sensor here has a matching button in lvgl.yaml:
-#   - This file READS state from Home Assistant → updates button appearance
-#   - lvgl.yaml SENDS commands to Home Assistant → when button is pressed
-# =============================================================================
-
-
-# =============================================================================
-# REGULAR SENSORS (Numeric Values)
-# =============================================================================
-# These sensors read numeric values like temperature and position.
-# They're used to display information or calculate other states.
-# =============================================================================
-
 sensor:
-
-  # ===========================================================================
-  # SENSOR: Office Temperature (Indoor)
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   The temperature inside the office from sensor.office_temperature
-  #   (This could be from a smart thermostat, dedicated sensor, etc.)
-  #
-  # WHAT IT UPDATES:
-  #   The "temperatures" label in the top-left corner of the screen
-  #   Format: "outdoor° / indoor°" (e.g., "15° / 22°")
-  #
-  # HOW IT WORKS:
-  #   When the office temperature changes in Home Assistant, this sensor
-  #   receives the new value and updates the label text. It combines the
-  #   outdoor temperature (from the other sensor below) with this value.
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → temperatures label (id: temperatures)
-  # ===========================================================================
+  # Imports the current room temperature from your Home Assistant climate entity
   - platform: homeassistant
-    entity_id: sensor.e_gh_temperature_temperature
-    id: e_gh_temperature
-    on_value:
-      - lvgl.label.update:
-          id: temperatures
-          text:
-            format: "%d° / %d°"
-            args: [ '(int)round(id(outdoor_temperature).state)', '(int)round(x)' ]
-
-  # ===========================================================================
-  # SENSOR: Aircon Current Temperature
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   Current temperature reported by the air conditioner
-  #   Watches: climate.office_air_conditioner (current_temperature)
-  #
-  # WHAT IT UPDATES:
-  #   The temperature label inside the Aircon Temp button
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → aircon_temp_label
-  # ===========================================================================
-  - platform: homeassistant
+    id: current_temperature
     entity_id: climate.electrical_gh_ac
-    id: e_gh_current_temperature
     attribute: current_temperature
-    on_value:
-      - lvgl.label.update:
-          id: aircon_temp_label
-          text:
-            format: "%.0f°"
-            args: [ 'x' ]
-      - lvgl.arc.update:
-          id: aircon_current_arc
-          value: !lambda return (int)x;
 
-  # ===========================================================================
-  # SENSOR: Aircon Target Temperature
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   Target/set temperature reported by the air conditioner
-  #   Watches: climate.office_air_conditioner (temperature)
-  #
-  # WHAT IT UPDATES:
-  #   The set temperature label inside the Aircon Set Temp button
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → aircon_set_temp_label
-  # ===========================================================================
+  # Imports the target temperature (for displaying the active setting)
   - platform: homeassistant
+    id: target_temperature
     entity_id: climate.electrical_gh_ac
-    id: e_gh_target_temperature
     attribute: temperature
     on_value:
-      - lvgl.label.update:
-          id: aircon_set_temp_label
-          text:
-            format: "%.0f°"
+      then:
+        - lvgl.arc.set_value:
+            id: temp_arc
+            value: !lambda "return x;"
+        - lvgl.label.update:
+            id: temp_label
+            format: "%.0f°C"
             args: [ 'x' ]
-      - lvgl.label.update:
-          id: aircon_lab_target_label
-          text:
-            format: "%.0f°"
-            args: [ 'x' ]
-      - lvgl.arc.update:
-          id: aircon_target_arc
-          value: !lambda return (int)x;
-
-# =============================================================================
-# TEXT SENSORS (String Values)
-# =============================================================================
 
 text_sensor:
-  # ===========================================================================
-  # SENSOR: Heating HVAC Action
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   Current action reported by the heating thermostat (heating/off/idle)
-  #   Watches: climate.office_radiator_thermostat (hvac_action)
-  #
-  # WHAT IT UPDATES:
-  #   The mode label on the heating lab page
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → heating_lab_mode_label
-  # ===========================================================================
+  # Imports the current operation mode (cool, heat, off, auto)
   - platform: homeassistant
+    id: climate_mode
     entity_id: climate.electrical_gh_ac
-    id: e_gh_hvac_action
-    attribute: last_on_operation
     on_value:
-      - lvgl.label.update:
-          id: heating_lab_mode_label
-          text: !lambda |-
-            if (x == "heat") return "Heat";
-            if (x == "cool") return "Cool";
-            if (x == "off") return "Off";
-            return x.c_str();
-
-
-
-# =============================================================================
-# BINARY SENSORS (On/Off States)
-# =============================================================================
-# These sensors track on/off states and update button appearances.
-# When the sensor is ON (true), the button shows as "checked" (highlighted).
-# When the sensor is OFF (false), the button shows as unchecked (dimmed).
-# =============================================================================
-
-binary_sensor:
-
-  # ===========================================================================
-  # SENSOR: Air Conditioner State
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   Whether the office air conditioner is running
-  #   Watches: switch.office_air_conditioner in Home Assistant
-  #
-  # WHAT IT UPDATES:
-  #   The "Aircon" button's visual state (highlighted when running)
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → office_aircon_button
-  # ===========================================================================
-  - platform: homeassistant
-    id: e_gh_air_conditioner_pwr
-    entity_id: binary_sensor.electrical_greenhouse_e_gh_ac_power_state
-    trigger_on_initial_state: true
-    on_state:
       then:
-        - lvgl.widget.update:
-            id: office_aircon_button
-            state:
-              checked: !lambda return x;
-        - lvgl.widget.update:
-            id: aircon_power_button
-            state:
-              checked: !lambda return x;
-        - lvgl.widget.update:
-            id: aircon_lab_power_button
-            state:
-              checked: !lambda return x;
-        - lvgl.widget.update:
-            id: aircon_temp_up_button
-            hidden: !lambda return !x;
-        - lvgl.widget.update:
-            id: aircon_temp_down_button
-            hidden: !lambda return !x;
-        - lvgl.widget.update:
-            id: aircon_set_temp_button
-            hidden: !lambda return !x;
+        - lvgl.label.update:
+            id: mode_label
+            format: "Mode: %s"
+            args: [ 'x.c_str()' ]
 
-  # ===========================================================================
-  # SENSOR: Office Storage Lights State
-  # ===========================================================================
-  # WHAT IT MONITORS:
-  #   Whether the office storage area lights are on or off
-  #   Watches: light.office_storage in Home Assistant
-  #
-  # WHAT IT UPDATES:
-  #   The "Storage Lights" button's visual state (highlighted when on)
-  #
-  # NOTE: This sensor references a button (storage_lights_button) that
-  #       should be defined in lvgl.yaml. If the button doesn't exist,
-  #       add it there or remove this sensor.
-  #
-  # RELATED UI ELEMENT:
-  #   lvgl.yaml → storage_lights_button
-  # ===========================================================================
+  # Imports the current fan mode (low, medium, high, auto)
   - platform: homeassistant
-    id: e_gh_lights
-    entity_id: switch.electrical_gh_lights
-    trigger_on_initial_state: true
-    on_state:
+    id: climate_fan_mode
+    entity_id: climate.electrical_gh_ac
+    on_value:
       then:
-        lvgl.widget.update:
-          id: e_gh_lights_button
-          state:
-            checked: !lambda return x;
+        - lvgl.label.update:
+            id: fan_label
+            format: "Fan: %s"
+            args: [ 'x.c_str()' ]
