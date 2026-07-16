@@ -20,7 +20,7 @@ sensor:
               args: [ 'x' ]
 
 text_sensor:
-  # TRACK LIGHT SWITCH STATE
+  # TRACK LIGHT SWITCH STATE DYNAMICALLY
   - platform: homeassistant
     id: light_switch_state
     entity_id: switch.electrical_gh_lights
@@ -28,9 +28,9 @@ text_sensor:
       then:
         - lambda: |-
             if (x == "on") {
-              id(btn_lights).set_style_bg_color(lv_color_hex(0x4CAF50), LV_PART_MAIN); // Highlighted Green
+              lv_obj_add_state(id(btn_lights), LV_STATE_CHECKED);
             } else {
-              id(btn_lights).set_style_bg_color(lv_color_hex(0x333333), LV_PART_MAIN); // Muted Dark Gray
+              lv_obj_clear_state(id(btn_lights), LV_STATE_CHECKED);
             }
 
   - platform: homeassistant
