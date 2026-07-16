@@ -21,10 +21,10 @@ lvgl:
   
   # Your single, combined widgets block
   widgets:
-    # --- 1. Top Bar / Status Header ---
+    # --- 1. Top Bar / Status Header with Light Toggle ---
     - obj:
         width: 100%
-        height: 40
+        height: 50
         align: TOP_MID
         bg_color: 0x1A1A1A
         radius: 0
@@ -32,9 +32,31 @@ lvgl:
         widgets:
           - label:
               text: "CLIMATE CONTROL"
-              align: CENTER
+              align: LEFT_MID
+              x: 20
               text_color: 0xFFFFFF
               text_font: roboto_14
+          
+          # LIGHT TOGGLE BUTTON (State colors handled dynamically by sensors.yaml)
+          - button:
+              id: btn_lights
+              align: RIGHT_MID
+              x: -20
+              width: 110
+              height: 36
+              bg_color: 0x333333 # Starts unhighlighted gray
+              widgets:
+                - label:
+                    text: "TOGGLE LIGHTS"
+                    align: CENTER
+                    text_color: 0xFFFFFF
+                    text_font: roboto_14
+              on_click:
+                then:
+                  - homeassistant.service:
+                      service: switch.toggle
+                      data:
+                        entity_id: switch.electrical_gh_lights
 
     # --- 2. Temperature Display & Control (Left Side) ---
     - arc:
@@ -44,9 +66,9 @@ lvgl:
         width: 220
         height: 220
         align: CENTER
-        min_value: 17
-        max_value: 30
-        value: 21
+        min_value: 63       # Fahrenheit min (17C)
+        max_value: 86       # Fahrenheit max (30C)
+        value: 72
         adjustable: true
         on_value:
           then:
@@ -59,12 +81,12 @@ lvgl:
                 id: temp_label
                 text:
                   format: "%.0f°F"
-                  args: [ 'x * 1.8 + 32' ]
+                  args: [ 'x' ]
 
     # Center Target Temperature Value
     - label:
         id: temp_label
-        text: "70°F"
+        text: "72°F"
         align: CENTER
         x: -90
         y: 20
@@ -93,10 +115,10 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
-                    if (!isnan(current) && current > 17) {
+                    if (!isnan(current) && current > 63) {
                       return esphome::to_string((int)current - 1);
                     }
-                    return esphome::to_string(17);
+                    return esphome::to_string(63);
 
     # Plus Button (Below Arc)
     - button:
@@ -120,10 +142,10 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   temperature: !lambda |-
                     float current = id(target_temperature).state;
-                    if (!isnan(current) && current < 30) {
+                    if (!isnan(current) && current < 86) {
                       return esphome::to_string((int)current + 1);
                     }
-                    return esphome::to_string(30);
+                    return esphome::to_string(86);
 
     # --- 3. Mode Buttons (Right Side) ---
     - button:

@@ -17,9 +17,22 @@ sensor:
             id: temp_label
             text:
               format: "%.0f°F"
-              args: [ 'x * 1.8 + 32' ]
+              args: [ 'x' ]
 
 text_sensor:
+  # TRACK LIGHT SWITCH STATE
+  - platform: homeassistant
+    id: light_switch_state
+    entity_id: switch.electrical_gh_lights
+    on_value:
+      then:
+        - lambda: |-
+            if (x == "on") {
+              id(btn_lights).set_style_bg_color(lv_color_hex(0x4CAF50), LV_PART_MAIN); // Highlighted Green
+            } else {
+              id(btn_lights).set_style_bg_color(lv_color_hex(0x333333), LV_PART_MAIN); // Muted Dark Gray
+            }
+
   - platform: homeassistant
     id: climate_mode
     entity_id: climate.electrical_gh_ac
