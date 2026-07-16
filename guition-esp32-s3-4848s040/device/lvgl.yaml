@@ -53,6 +53,7 @@ lvgl:
                   - homeassistant.service:
                       service: switch.toggle
                       data:
+                        entity_id: switch.toggle
                         entity_id: switch.electrical_gh_lights
 
     # --- 2. Temperature Display & Control (Left Side) ---
@@ -89,7 +90,7 @@ lvgl:
         text_color: 0xFFFFFF
         text_font: roboto_32
 
-    # Minus Button (2 Degree Steps to clear Rounding Gaps)
+    # Minus Button
     - button:
         id: btn_temp_down
         x: -170
@@ -116,7 +117,7 @@ lvgl:
                     }
                     return esphome::to_string(63);
 
-    # Plus Button (2 Degree Steps to clear Rounding Gaps)
+    # Plus Button
     - button:
         id: btn_temp_up
         x: -10
@@ -196,7 +197,7 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   hvac_mode: "off"
 
-    # --- 4. Fan Speed Dropdown (Switched to standard on_value) ---
+    # --- 4. Fan Speed Dropdown ---
     - dropdown:
         id: fan_dropdown
         x: 130
@@ -209,7 +210,7 @@ lvgl:
           - "low"
           - "medium"
           - "high"
-        on_value: # Changed from on_selection back to compliant option-tracking
+        on_value:
           then:
             - homeassistant.service:
                 service: climate.set_fan_mode
@@ -217,7 +218,26 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   fan_mode: !lambda "return x;"
 
-    # --- 5. Status Info Footer ---
+    # --- 5. Ambient Environment Sub-Row ---
+    - label:
+        id: ambient_temp_label
+        text: "Room: --°F"
+        x: -150
+        y: 210
+        align: CENTER
+        text_color: 0xFFFFFF
+        text_font: roboto_14
+
+    - label:
+        id: ambient_humidity_label
+        text: "Humidity: --%"
+        x: -30
+        y: 210
+        align: CENTER
+        text_color: 0x03A9F4
+        text_font: roboto_14
+
+    # --- 6. Status Info Footer ---
     - label:
         id: mode_label
         text: "Mode: Unknown"
