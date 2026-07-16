@@ -1,55 +1,257 @@
-sensor:
-  - platform: homeassistant
-    id: current_temperature
-    entity_id: climate.electrical_gh_ac
-    attribute: current_temperature
+# guition-esp32-s3-4848s040/device/lvgl.yaml
+# Commit this file to your GitHub repository!
 
-  - platform: homeassistant
-    id: target_temperature
-    entity_id: climate.electrical_gh_ac
-    attribute: temperature
-    on_value:
-      then:
-        - lvgl.arc.update:
-            id: temp_arc
-            value: !lambda "return x;"
-        - lvgl.label.update:
-            id: temp_label
-            text:
-              format: "%.0f°F"
-              args: [ 'x' ]
+font:
+  - file: "gfonts://Roboto"
+    id: roboto_14
+    size: 14
+  - file: "gfonts://Roboto"
+    id: roboto_22
+    size: 22
+  - file: "gfonts://Roboto"
+    id: roboto_32
+    size: 32
 
-text_sensor:
-  - platform: homeassistant
-    id: light_switch_state
-    entity_id: switch.electrical_gh_lights
-    on_value:
-      then:
-        - lambda: |-
-            if (x == "on") {
-              lv_obj_add_state(id(btn_lights), LV_STATE_CHECKED);
-            } else {
-              lv_obj_clear_state(id(btn_lights), LV_STATE_CHECKED);
-            }
+lvgl:
+  log_level: WARN
+  buffer_size: 10%
+  theme:
+    dark_mode: true
+  
+  widgets:
+    # --- 1. Top Bar / Status Header with Light Toggle ---
+    - obj:
+        width: 100%
+        height: 50
+        align: TOP_MID
+        bg_color: 0x1A1A1A
+        radius: 0
+        border_width: 0
+        widgets:
+          - label:
+              text: "CLIMATE CONTROL"
+              align: LEFT_MID
+              x: 20
+              text_color: 0xFFFFFF
+              text_font: roboto_14
+          
+          - button:
+              id: btn_lights
+              align: RIGHT_MID
+              x: -20
+              width: 110
+              height: 36
+              bg_color: 0x333333
+              widgets:
+                - label:
+                    text: "TOGGLE LIGHTS"
+                    align: CENTER
+                    text_color: 0xFFFFFF
+                    text_font: roboto_14
+              on_click:
+                then:
+                  - homeassistant.service:
+                      service: switch.toggle
+                      data:
+                        entity_id: switch.electrical_gh_lights
 
-  - platform: homeassistant
-    id: climate_mode
-    entity_id: climate.electrical_gh_ac
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: mode_label # Fixed: Target mode_label container
-            text:
-              format: "Mode: %s"
-              args: [ 'x.c_str()' ]
+    # --- 2. Temperature Display & Control (Left Side) ---
+    - arc:
+        id: temp_arc
+        x: -90
+        y: 20
+        width: 220
+        height: 220
+        align: CENTER
+        min_value: 63       
+        max_value: 86       
+        value: 72
+        adjustable: true
+        on_value:
+          then:
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda "return esphome::to_string((int)x);"
+            - lvgl.label.update:
+                id: temp_label
+                text:
+                  format: "%.0f°F"
+                  args: [ 'x' ]
 
-  - platform: homeassistant
-    id: climate_fan_mode
-    entity_id: climate.electrical_gh_ac
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: fan_label # Fixed: Target fan_label container exclusively
-            text:
-              format: "Fan: %s"
-              args: [ 'x.c_str()' ]
+    # Center Target Temperature Value
+    - label:
+        id: temp_label
+        text: "72°F"
+        align: CENTER
+        x: -90
+        y: 20
+        text_color: 0xFFFFFF
+        text_font: roboto_32
+
+    # Minus Button (2 Degree Steps to clear Rounding Gaps)
+    - button:
+        id: btn_temp_down
+        x: -170
+        y: 150
+        width: 60
+        height: 50
+        align: CENTER
+        widgets:
+          - label: 
+              text: "-" 
+              align: CENTER 
+              text_color: 0xFFFFFF 
+              text_font: roboto_22
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda |-
+                    float current = id(target_temperature).state;
+                    if (!isnan(current) && current > 64) {
+                      return esphome::to_string((int)round(current - 2.0));
+                    }
+                    return esphome::to_string(63);
+
+    # Plus Button (2 Degree Steps to clear Rounding Gaps)
+    - button:
+        id: btn_temp_up
+        x: -10
+        y: 150
+        width: 60
+        height: 50
+        align: CENTER
+        widgets:
+          - label: 
+              text: "+" 
+              align: CENTER 
+              text_color: 0xFFFFFF 
+              text_font: roboto_22
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_temperature
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  temperature: !lambda |-
+                    float current = id(target_temperature).state;
+                    if (!isnan(current) && current < 84) {
+                      return esphome::to_string((int)round(current + 2.0));
+                    }
+                    return esphome::to_string(86);
+
+    # --- 3. Mode Buttons (Right Side) ---
+    - button:
+        id: btn_cool
+        x: 130
+        y: -70
+        width: 120
+        height: 50
+        align: CENTER
+        widgets:
+          - label: { text: "COOL MODE", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "cool"
+
+    - button:
+        id: btn_heat
+        x: 130
+        y: -10
+        width: 120
+        height: 50
+        align: CENTER
+        widgets:
+          - label: { text: "HEAT MODE", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "heat"
+
+    - button:
+        id: btn_off
+        x: 130
+        y: 50
+        width: 120
+        height: 50
+        align: CENTER
+        bg_color: 0xD32F2F
+        widgets:
+          - label: { text: "POWER OFF", align: CENTER, text_color: 0xFFFFFF, text_font: roboto_14 }
+        on_click:
+          then:
+            - homeassistant.service:
+                service: climate.set_hvac_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  hvac_mode: "off"
+
+    # --- 4. Fan Speed Dropdown ---
+    - dropdown:
+        id: fan_dropdown
+        x: 130
+        y: 115
+        width: 120
+        height: 45
+        align: CENTER
+        options:
+          - "auto"
+          - "low"
+          - "medium"
+          - "high"
+        on_value:
+          then:
+            - homeassistant.service:
+                service: climate.set_fan_mode
+                data:
+                  entity_id: climate.electrical_gh_ac
+                  fan_mode: !lambda "return x;"
+
+    # --- 5. NEW: Ambient Environment Sub-Row ---
+    - label:
+        id: ambient_temp_label
+        text: "Room: --°F"
+        x: -150
+        y: 210
+        align: CENTER
+        text_color: 0xFFFFFF
+        text_font: roboto_14
+
+    - label:
+        id: ambient_humidity_label
+        text: "Humidity: --%"
+        x: -30
+        y: 210
+        align: CENTER
+        text_color: 0x03A9F4 # Light Blue accent for humidity
+        text_font: roboto_14
+
+    # --- 6. Status Info Footer (Shifted Down to Y: 235) ---
+    - label:
+        id: mode_label
+        text: "Mode: Unknown"
+        x: 100
+        y: 185
+        align: CENTER
+        text_color: 0xAAAAAA
+        text_font: roboto_14
+
+    - label:
+        id: fan_label
+        text: "Fan: Unknown"
+        x: 100
+        y: 225
+        align: CENTER
+        text_color: 0xAAAAAA
+        text_font: roboto_14
