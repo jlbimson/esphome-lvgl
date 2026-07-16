@@ -89,7 +89,7 @@ lvgl:
         text_color: 0xFFFFFF
         text_font: roboto_32
 
-    # Minus Button (2 Degree Steps to clear IR Database Rounding gaps)
+    # Minus Button (2 Degree Steps to clear Rounding Gaps)
     - button:
         id: btn_temp_down
         x: -170
@@ -116,7 +116,7 @@ lvgl:
                     }
                     return esphome::to_string(63);
 
-    # Plus Button (2 Degree Steps to clear IR Database Rounding gaps)
+    # Plus Button (2 Degree Steps to clear Rounding Gaps)
     - button:
         id: btn_temp_up
         x: -10
@@ -196,7 +196,7 @@ lvgl:
                   entity_id: climate.electrical_gh_ac
                   hvac_mode: "off"
 
-    # --- 4. Fan Speed Dropdown (Fixed option value extraction hooks) ---
+    # --- 4. Fan Speed Dropdown (Switched to standard on_value) ---
     - dropdown:
         id: fan_dropdown
         x: 130
@@ -209,7 +209,7 @@ lvgl:
           - "low"
           - "medium"
           - "high"
-        on_selection:       # Corrected trigger property from on_value
+        on_value: # Changed from on_selection back to compliant option-tracking
           then:
             - homeassistant.service:
                 service: climate.set_fan_mode
